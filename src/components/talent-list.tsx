@@ -29,6 +29,7 @@ export default function TalentList() {
       skills: store.skills,
       cursor: store.cursor,
       direction: store.direction,
+      jobtitle: store.jobtitle,
     }),
     [
       store.q,
@@ -39,6 +40,7 @@ export default function TalentList() {
       store.skills,
       store.cursor,
       store.direction,
+      store.jobtitle,
     ],
   );
 
@@ -53,6 +55,7 @@ export default function TalentList() {
           country: filters.country,
           state: filters.state,
           skills: filters.skills,
+          jobtitle: filters.jobtitle,
           cursor: pageParam as string | undefined,
           direction: filters.direction,
         };

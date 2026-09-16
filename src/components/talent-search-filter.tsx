@@ -36,7 +36,7 @@ export default function TalentSearchFilter({
   const router = useRouter();
 
   const {
-    q,
+    jobtitle,
     experience,
     country,
     state,
@@ -52,11 +52,12 @@ export default function TalentSearchFilter({
   });
 
   const [filterOptions, setFilterOptions] = useState<string[]>([]);
-  const debouncedSearch = useDebounce(q, 500);
+  // Main search box drives jobtitle.
+  const debouncedSearch = useDebounce(jobtitle, 500);
 
   const buildQueryString = useCallback(() => {
     const params: Record<string, string> = {};
-    if (debouncedSearch) params.q = debouncedSearch;
+    if (debouncedSearch) params.jobtitle = debouncedSearch;
     if (experience) params.experience = experience;
     if (country) params.country = country;
     if (state) params.state = state;
@@ -83,13 +84,13 @@ export default function TalentSearchFilter({
 
   const searchParams = useSearchParams();
   useEffect(() => {
-    const qParam = searchParams.get("q") || "";
+    const jobtitleParam = searchParams.get("jobtitle") || "";
     const expParam = searchParams.get("experience") || "";
     const countryParam = searchParams.get("country") || "";
     const stateParam = searchParams.get("state") || "";
     const skillsParam = searchParams.get("skills")?.split(",") || [];
 
-    if (qParam) setFilter("q", qParam);
+    if (jobtitleParam) setFilter("jobtitle", jobtitleParam);
     if (expParam) setFilter("experience", expParam);
     if (countryParam) setFilter("country", countryParam);
     if (stateParam) setFilter("state", stateParam);
@@ -102,7 +103,7 @@ export default function TalentSearchFilter({
     });
 
     const params: Record<string, string> = {};
-    if (q) params.q = q;
+    if (jobtitle) params.jobtitle = jobtitle;
     if (localFilters.experience) params.experience = localFilters.experience;
     if (localFilters.country) params.country = localFilters.country;
     if (localFilters.state) params.state = localFilters.state;
@@ -115,7 +116,7 @@ export default function TalentSearchFilter({
 
   const handleReset = () => {
     resetFilters();
-    setFilter("q", "");
+    setFilter("jobtitle", "");
     setLocalFilters({
       experience: "",
       country: "",
@@ -132,7 +133,7 @@ export default function TalentSearchFilter({
       state,
       skills,
     });
-  }, [q, experience, country, state, skills]);
+  }, [jobtitle, experience, country, state, skills]);
 
   return (
     <div className="relative">
@@ -140,10 +141,10 @@ export default function TalentSearchFilter({
         <div ref={wrapperRef} className="w-full">
           <div className="relative w-full">
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-              {q !== "" && (
+              {jobtitle !== "" && (
                 <span
                   className="cursor-pointer text-black"
-                  onClick={() => setFilter("q", "")}
+                  onClick={() => setFilter("jobtitle", "")}
                 >
                   <X strokeWidth={1} size={18} />
                 </span>
@@ -161,18 +162,18 @@ export default function TalentSearchFilter({
             </div>
             <span
               className={`${
-                q !== "" ? "hidden" : "block"
+                jobtitle !== "" ? "hidden" : "block"
               } absolute left-3 top-1/2 -translate-y-1/2 text-[#AFAFAF]`}
             >
               <Search strokeWidth={1} size={18} />
             </span>
             <Input
               className={`w-full rounded-sm h-[42px] text-[14px] pr-10 ${
-                q !== "" ? "pl-3" : "pl-8"
+                jobtitle !== "" ? "pl-3" : "pl-8"
               }`}
-              placeholder="Search by skill, job title or name"
-              value={q ?? ""}
-              onChange={(e) => setFilter("q", e.target.value)}
+              placeholder="Search by job title"
+              value={jobtitle ?? ""}
+              onChange={(e) => setFilter("jobtitle", e.target.value)}
             />
           </div>
         </div>
