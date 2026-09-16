@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { Funnel, Search, X } from "lucide-react";
+import { ChevronDown, Funnel, Search, X } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,6 +24,13 @@ import { flattenAndSortSkills } from "@/lib/skills_sort";
 import skillsLibrary from "../../public/skills_library.json";
 import { useTalentStore } from "@/store/talentStore";
 
+type SearchField = "q" | "jobtitle";
+
+const SEARCH_FIELD_LABELS: Record<SearchField, string> = {
+  q: "Name / keyword",
+  jobtitle: "Job title",
+};
+
 interface TalentSearchFilterProps {
   isLoading?: boolean;
 }
@@ -36,7 +43,6 @@ export default function TalentSearchFilter({
   const router = useRouter();
 
   const {
-    jobtitle,
     experience,
     country,
     state,
@@ -44,6 +50,7 @@ export default function TalentSearchFilter({
     setFilter,
     resetFilters,
   } = useTalentStore();
+
   const [localFilters, setLocalFilters] = useState({
     experience,
     country,
@@ -52,18 +59,31 @@ export default function TalentSearchFilter({
   });
 
   const [filterOptions, setFilterOptions] = useState<string[]>([]);
-  // Main search box drives jobtitle.
-  const debouncedSearch = useDebounce(jobtitle, 500);
+
+  // Single search box: `searchTerm` is the text, `searchField` decides
+  // whether it is sent as `q` or `jobtitle`. Only one is ever populated.
+  const [searchField, setSearchField] = useState<SearchField>("jobtitle");
+  const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
+
+  const otherField: SearchField = searchField === "q" ? "jobtitle" : "q";
+
+  // Push the debounced term into the active store field and clear the other,
+  // so the API only ever receives one of them.
+  useEffect(() => {
+    setFilter(searchField, debouncedSearch);
+    setFilter(otherField, "");
+  }, [debouncedSearch, searchField, otherField, setFilter]);
 
   const buildQueryString = useCallback(() => {
     const params: Record<string, string> = {};
-    if (debouncedSearch) params.jobtitle = debouncedSearch;
+    if (debouncedSearch) params[searchField] = debouncedSearch;
     if (experience) params.experience = experience;
     if (country) params.country = country;
     if (state) params.state = state;
     if (skills.length) params.skills = skills.join(",");
     return new URLSearchParams(params).toString();
-  }, [debouncedSearch, experience, country, state, skills]);
+  }, [debouncedSearch, searchField, experience, country, state, skills]);
 
   useEffect(() => {
     const queryString = buildQueryString();
@@ -82,15 +102,30 @@ export default function TalentSearchFilter({
     return () => document.removeEventListener("keydown", down);
   }, [buildQueryString, router]);
 
+  // Initialise from the URL once on mount (deep-linking), without clobbering
+  // typing on later URL updates.
   const searchParams = useSearchParams();
+  const didInit = useRef(false);
   useEffect(() => {
+    if (didInit.current) return;
+    didInit.current = true;
+
+    const qParam = searchParams.get("q") || "";
     const jobtitleParam = searchParams.get("jobtitle") || "";
     const expParam = searchParams.get("experience") || "";
     const countryParam = searchParams.get("country") || "";
     const stateParam = searchParams.get("state") || "";
     const skillsParam = searchParams.get("skills")?.split(",") || [];
 
-    if (jobtitleParam) setFilter("jobtitle", jobtitleParam);
+    if (jobtitleParam) {
+      setSearchField("jobtitle");
+      setSearchTerm(jobtitleParam);
+      setFilter("jobtitle", jobtitleParam);
+    } else if (qParam) {
+      setSearchField("q");
+      setSearchTerm(qParam);
+      setFilter("q", qParam);
+    }
     if (expParam) setFilter("experience", expParam);
     if (countryParam) setFilter("country", countryParam);
     if (stateParam) setFilter("state", stateParam);
@@ -103,7 +138,7 @@ export default function TalentSearchFilter({
     });
 
     const params: Record<string, string> = {};
-    if (jobtitle) params.jobtitle = jobtitle;
+    if (searchTerm) params[searchField] = searchTerm;
     if (localFilters.experience) params.experience = localFilters.experience;
     if (localFilters.country) params.country = localFilters.country;
     if (localFilters.state) params.state = localFilters.state;
@@ -116,7 +151,7 @@ export default function TalentSearchFilter({
 
   const handleReset = () => {
     resetFilters();
-    setFilter("jobtitle", "");
+    setSearchTerm("");
     setLocalFilters({
       experience: "",
       country: "",
@@ -133,18 +168,44 @@ export default function TalentSearchFilter({
       state,
       skills,
     });
-  }, [jobtitle, experience, country, state, skills]);
+  }, [experience, country, state, skills]);
 
   return (
     <div className="relative">
       <div className="flex items-center gap-2">
+        {/* Search-by selector */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="h-[42px] shrink-0 gap-2 rounded-[4px] text-[14px] text-[#09090B]"
+            >
+              {SEARCH_FIELD_LABELS[searchField]}
+              <ChevronDown size={14} />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="rounded-[8px]">
+            {(Object.keys(SEARCH_FIELD_LABELS) as SearchField[]).map(
+              (field) => (
+                <DropdownMenuItem
+                  key={field}
+                  onClick={() => setSearchField(field)}
+                  className="text-[14px]"
+                >
+                  {SEARCH_FIELD_LABELS[field]}
+                </DropdownMenuItem>
+              ),
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <div ref={wrapperRef} className="w-full">
           <div className="relative w-full">
             <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-              {jobtitle !== "" && (
+              {searchTerm !== "" && (
                 <span
                   className="cursor-pointer text-black"
-                  onClick={() => setFilter("jobtitle", "")}
+                  onClick={() => setSearchTerm("")}
                 >
                   <X strokeWidth={1} size={18} />
                 </span>
@@ -162,18 +223,20 @@ export default function TalentSearchFilter({
             </div>
             <span
               className={`${
-                jobtitle !== "" ? "hidden" : "block"
+                searchTerm !== "" ? "hidden" : "block"
               } absolute left-3 top-1/2 -translate-y-1/2 text-[#AFAFAF]`}
             >
               <Search strokeWidth={1} size={18} />
             </span>
             <Input
               className={`w-full rounded-sm h-[42px] text-[14px] pr-10 ${
-                jobtitle !== "" ? "pl-3" : "pl-8"
+                searchTerm !== "" ? "pl-3" : "pl-8"
               }`}
-              placeholder="Search by job title"
-              value={jobtitle ?? ""}
-              onChange={(e) => setFilter("jobtitle", e.target.value)}
+              placeholder={`Search by ${SEARCH_FIELD_LABELS[
+                searchField
+              ].toLowerCase()}`}
+              value={searchTerm ?? ""}
+              onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
         </div>
