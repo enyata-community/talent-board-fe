@@ -27,9 +27,9 @@ export default function TalentList() {
       country: store.country,
       state: store.state,
       skills: store.skills,
+      jobtitle: store.jobtitle,
       cursor: store.cursor,
       direction: store.direction,
-      jobtitle: store.jobtitle,
     }),
     [
       store.q,
@@ -38,9 +38,9 @@ export default function TalentList() {
       store.country,
       store.state,
       store.skills,
+      store.jobtitle,
       store.cursor,
       store.direction,
-      store.jobtitle,
     ],
   );
 

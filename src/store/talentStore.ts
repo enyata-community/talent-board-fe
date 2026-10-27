@@ -20,9 +20,9 @@ export const useTalentStore = create<TalentState>()(
       country: "",
       state: "",
       skills: [],
-      jobtitle: "",
       cursor: undefined,
       direction: undefined,
+      jobtitle: "",
 
       setFilter: (key, value) =>
         set((state) => ({
@@ -38,9 +38,9 @@ export const useTalentStore = create<TalentState>()(
           country: "",
           state: "",
           skills: [],
-          jobtitle: "",
           cursor: undefined,
           direction: undefined,
+          jobtitle: "",
         }),
 
       setPagination: (cursor, direction) => set({ cursor, direction }),

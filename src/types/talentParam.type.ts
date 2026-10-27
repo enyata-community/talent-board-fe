@@ -1,6 +1,7 @@
 // types/talentParams.type.ts
 
 export interface TalentFilters {
+  jobtitle?: string;
   q?: string;
   limit?: number;
   filter_options?: string[];
@@ -8,7 +9,6 @@ export interface TalentFilters {
   country?: string;
   state?: string;
   skills?: string[];
-  jobtitle?: string;
 }
 
 export interface TalentPagination {
