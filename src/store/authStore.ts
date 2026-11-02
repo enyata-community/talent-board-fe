@@ -23,17 +23,15 @@ export type User = {
   profile?: profile;
 };
 
+// Session tokens are deliberately not part of this store: they live in HttpOnly
+// cookies and are attached server-side by the API proxy (src/lib/axiosInstance.ts).
 interface AuthState {
   user: User | null;
-  accessToken: string | null;
-  refreshToken: string | null;
   loading: boolean;
   is_authenticated: boolean;
   resetAuth: () => void;
   set_isAuthenticated: (isAuthenticated: boolean) => void;
-  setUser: (user: User) => void;
-  setAccessToken: (token: string | undefined) => void;
-  setRefreshToken: (refreshToken: string | undefined) => void;
+  setUser: (user: User | null) => void;
   setLoading: (loading: boolean) => void;
   logout: () => void;
 }
@@ -42,22 +40,16 @@ export const useAuthStore = create<AuthState>()(
   devtools(
     (set) => ({
       user: null,
-      accessToken: null,
-      refreshToken: null,
       loading: false,
       is_authenticated: false,
-      resetAuth: () => set({ user: null, accessToken: undefined }),
+      resetAuth: () => set({ user: null, is_authenticated: false }),
       set_isAuthenticated: (isAuthenticated) =>
         set({ is_authenticated: isAuthenticated }),
       setUser: (user) => set({ user }),
-      setAccessToken: (token) => set({ accessToken: token }),
-      setRefreshToken: (refreshToken) => set({ refreshToken: refreshToken }),
       setLoading: (loading) => set({ loading }),
       logout: () => {
         set({
           user: null,
-          accessToken: null,
-          refreshToken: null,
           is_authenticated: false,
         });
         window.location.href = "/";

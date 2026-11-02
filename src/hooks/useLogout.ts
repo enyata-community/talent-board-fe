@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { POST } from "@/lib/requests";
 import { ApiEnvelope } from "@/types/APIResponseTypes";
 import { useAuthStore } from "@/store/authStore";
-import { clearTokens } from "@/lib/store-token";
 import { showError, showSuccess } from "@/lib/Alerts";
 
 export function useLogout() {
@@ -20,8 +19,7 @@ export function useLogout() {
           showError(res.message || "Something went wrong");
           return;
         }
-        // HttpOnly cookies can only be cleared server-side.
-        await clearTokens();
+        // The API proxy clears the HttpOnly session cookies on this call.
         useAuthStore.getState().logout();
         onSuccess?.();
         showSuccess("Logged out successfully");

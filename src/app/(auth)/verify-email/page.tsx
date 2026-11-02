@@ -1,6 +1,5 @@
 "use client";
 import { motion } from "framer-motion";
-import { startSession } from "@/lib/auth-session";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
@@ -90,11 +89,10 @@ const VerifyEmailForm = () => {
 
     setIsSubmitting(true);
     try {
+      // The API proxy has already moved the tokens into HttpOnly cookies.
       const response = await verifyEmail({ email, otp: code });
-      const { access_token, refresh_token } = response.tokens;
       const { user } = response.data;
 
-      await startSession({ access_token, refresh_token });
       setUser(user);
       set_isAuthenticated(true);
 

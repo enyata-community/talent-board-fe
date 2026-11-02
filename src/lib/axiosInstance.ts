@@ -1,42 +1,14 @@
 "use client";
 
 import axios from "axios";
-import { env } from "./env";
-import { useAuthStore } from "@/store/authStore";
 
-axios.defaults.withCredentials = true;
-
+// Every browser request goes through the same-origin proxy at /api/proxy
+// (src/app/api/proxy/[...path]/route.ts), which attaches the session from
+// HttpOnly cookies on the server. Tokens never reach client code, so there are
+// no auth interceptors here.
 const API = axios.create({
-  baseURL: env("apiUrl"),
-  withCredentials: true,
+  baseURL: "/api/proxy",
   timeout: 30_000,
 });
-API.interceptors.request.use((config) => {
-  const { accessToken, refreshToken } = useAuthStore.getState();
-  if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
-  if (refreshToken) config.headers["x-refresh-token"] = refreshToken;
-  return config;
-});
-
-
-API.interceptors.response.use(
-  (res) => {
-    const newToken = res.headers["x-access-token"];
-    if (newToken) useAuthStore.getState().setAccessToken(newToken);
-    return res;
-  },
-  // async (error) => {
-  //   if (error.code === "ECONNABORTED") {
-  //     window.location.href = "/";
-  //     return;
-  //   }
-  //   if (error.response?.status === 504) {
-  //     window.location.href = "/";
-  //     return;
-  //   }
-
-  //   return Promise.reject(error);
-  // }
-);
 
 export default API;

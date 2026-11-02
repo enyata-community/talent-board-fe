@@ -1,6 +1,3 @@
-
-
-import { cookies } from 'next/headers';
 import OnboardingNestedLayout from './components/nested-layout';
 import { getUser } from '@/api/user';
 import { redirect } from 'next/navigation';
@@ -9,10 +6,6 @@ import { RequestTimeoutError } from '@/lib/withTimeout';
 import Timeout from '../time-out';
 
 const OnboardingLayout = async ({ children }: { children: React.ReactNode }) => {
-  const cookieStore = await cookies();
-  const accessToken = cookieStore.get("access_token");
-  const refreshToken = cookieStore.get("refresh_token");
-
   let userData;
   try {
     userData = await getUser();
@@ -29,11 +22,7 @@ const OnboardingLayout = async ({ children }: { children: React.ReactNode }) => 
     redirect("/dashboard");
   }
   return (
-    <AuthHydrator
-      user={userData?.data?.user}
-      accessToken={accessToken?.value}
-      refreshToken={refreshToken?.value}
-    >
+    <AuthHydrator user={userData.data.user}>
       <OnboardingNestedLayout>{children}</OnboardingNestedLayout>
     </AuthHydrator>
   );

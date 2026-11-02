@@ -18,15 +18,14 @@ export interface SignupResponse {
   data: SignupResponseData;
 }
 
+// Session-issuing responses: the backend also sends a `tokens` object, but the
+// API proxy moves it into HttpOnly cookies and strips it before the browser
+// sees the body, so it is deliberately absent from these types.
 export interface VerifyEmailResponse {
   status: string;
   message: string;
   data: {
     user: User;
-  };
-  tokens: {
-    access_token: string;
-    refresh_token: string;
   };
 }
 
@@ -40,10 +39,6 @@ export interface LoginResponse {
   message: string;
   data: {
     user: User;
-  };
-  tokens: {
-    access_token: string;
-    refresh_token: string;
   };
 }
 

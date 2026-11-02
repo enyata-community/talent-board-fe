@@ -3,16 +3,11 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/api/user";
 import { AuthHydrator } from "@/components/authHydrator";
 import ProtectedFragment from "./components/protected-fragment";
-import { cookies } from "next/headers";
 import { RequestTimeoutError } from "@/lib/withTimeout";
 import Timeout from "../time-out";
 import { DashboardSubLayout } from "@/components/dashboard-layout";
 
 const ProtectedLayout = async ({ children }: { children: React.ReactNode }) => {
-  const cookieStore = await cookies();
-  const refreshToken = cookieStore.get("refresh_token");
-  const accessToken = cookieStore.get("access_token");
-
   let userData;
   try {
     userData = await getUser();
@@ -31,11 +26,7 @@ const ProtectedLayout = async ({ children }: { children: React.ReactNode }) => {
 
   return (
     <ProtectedFragment>
-      <AuthHydrator
-        user={userData?.data?.user}
-        accessToken={accessToken?.value}
-        refreshToken={refreshToken?.value}
-      >
+      <AuthHydrator user={userData.data.user}>
         {/* <ProtectedHeader /> */}
         <DashboardSubLayout>{children}</DashboardSubLayout>
       </AuthHydrator>

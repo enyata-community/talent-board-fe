@@ -1,6 +1,5 @@
 'use client';
 import { motion } from "framer-motion";
-import { startSession } from "@/lib/auth-session";
 import React, { ChangeEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -40,11 +39,10 @@ const LoginPage = () => {
 
     setIsSubmitting(true);
     try {
+      // The API proxy has already moved the tokens into HttpOnly cookies.
       const response = await login({ email, password });
-      const { access_token, refresh_token } = response.tokens;
       const { user } = response.data;
 
-      await startSession({ access_token, refresh_token });
       setUser(user);
       set_isAuthenticated(true);
 
